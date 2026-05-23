@@ -1,0 +1,39 @@
+# ── Build & packaging ───────────────────────────────────────────
+build/
+dist/
+*.spec.bak
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+
+# ── Keys — NEVER commit private keys ────────────────────────────
+keys/private.pem
+keys/*.pem
+
+# ── Virtual environments ─────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── OS / Editor ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.suo
+*.user
+
+# ── Temp / test output ───────────────────────────────────────────
+samples/recovered.txt
+samples/tampered_dec.txt
+*.tmp
+*.log
+
+# ── Python packaging ─────────────────────────────────────────────
+*.whl
+*.tar.gz

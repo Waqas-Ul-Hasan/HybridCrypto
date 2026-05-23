@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Secure File Encryption System — Hybrid Cryptography</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-dark:   #0D1117;
+    --bg-card:   #161B22;
+    --bg-input:  #21262D;
+    --blue:      #58A6FF;
+    --green:     #3FB950;
+    --amber:     #E3B341;
+    --red:       #F85149;
+    --purple:    #BC8CFF;
+    --text:      #F0F6FC;
+    --muted:     #8B949E;
+    --border:    #30363D;
+    --grad-a:    linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+    --grad-b:    linear-gradient(135deg, #1A1A2E, #16213E, #0F3460);
+    --grad-c:    linear-gradient(135deg, #0D1117, #161B22);
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); font-family: 'Inter', sans-serif; color: var(--text); }
+
+  /* ─── SLIDE ENGINE ─── */
+  .deck { width: 100vw; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 48px 80px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .45s ease, transform .45s ease;
+    transform: translateX(60px);
+  }
+  .slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+  .slide.out    { opacity: 0; transform: translateX(-60px); }
+
+  /* ─── BACKGROUNDS ─── */
+  .slide-1  { background: var(--grad-a); }
+  .slide-2  { background: var(--bg-dark); }
+  .slide-3  { background: var(--bg-dark); }
+  .slide-4  { background: var(--bg-dark); }
+  .slide-5  { background: var(--bg-dark); }
+  .slide-6  { background: var(--bg-dark); }
+  .slide-7  { background: var(--bg-dark); }
+  .slide-8  { background: var(--bg-dark); }
+  .slide-9  { background: var(--bg-dark); }
+  .slide-10 { background: var(--grad-a); }
+
+  /* ─── SHARED ─── */
+  .tag {
+    display: inline-block; padding: 4px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    border: 1px solid;
+  }
+  .tag-blue   { color: var(--blue);   border-color: var(--blue);   background: #58a6ff18; }
+  .tag-green  { color: var(--green);  border-color: var(--green);  background: #3fb95018; }
+  .tag-amber  { color: var(--amber);  border-color: var(--amber);  background: #e3b34118; }
+  .tag-purple { color: var(--purple); border-color: var(--purple); background: #bc8cff18; }
+
+  h1 { font-size: clamp(28px, 4vw, 52px); font-weight: 800; line-height: 1.1; }
+  h2 { font-size: clamp(22px, 3vw, 38px); font-weight: 700; }
+  h3 { font-size: clamp(16px, 2vw, 24px); font-weight: 600; }
+  p  { font-size: clamp(13px, 1.4vw, 17px); line-height: 1.7; color: var(--muted); }
+
+  .accent { color: var(--blue); }
+  .accent-g { color: var(--green); }
+  .accent-a { color: var(--amber); }
+  .accent-p { color: var(--purple); }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 28px;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ─── SLIDE 1: TITLE ─── */
+  .s1-lock { font-size: 80px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+  .s1-title { font-size: clamp(28px, 4.5vw, 56px); font-weight: 900; text-align: center; line-height: 1.1; }
+  .s1-sub   { font-size: clamp(14px, 1.8vw, 22px); color: var(--muted); margin: 16px 0 32px; text-align: center; }
+  .s1-badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .s1-names { margin-top: 40px; color: var(--muted); font-size: 15px; text-align: center; }
+  .glow-line {
+    width: 280px; height: 2px; margin: 20px auto;
+    background: linear-gradient(90deg, transparent, var(--blue), var(--purple), transparent);
+  }
+
+  /* ─── GRID LAYOUTS ─── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
+
+  /* ─── TABLE ─── */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: var(--bg-input); color: var(--blue); padding: 12px 16px; text-align: left; font-weight: 600; }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #ffffff08; }
+
+  /* ─── CODE BLOCK ─── */
+  .code-block {
+    background: #010409; border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 20px; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.8; color: #E6EDF3;
+    white-space: pre; overflow-x: auto;
+  }
+  .kw   { color: #FF7B72; }
+  .str  { color: #A5D6FF; }
+  .fn   { color: #D2A8FF; }
+  .cmt  { color: #8B949E; font-style: italic; }
+  .num  { color: #79C0FF; }
+
+  /* ─── FLOW DIAGRAM ─── */
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .flow-box {
+    background: var(--bg-card); border: 1px solid var(--blue); border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; color: var(--blue); text-align: center;
+    white-space: nowrap;
+  }
+  .flow-arrow { color: var(--muted); font-size: 20px; }
+
+  /* ─── PROGRESS BAR ─── */
+  .pbar-wrap { width: 100%; background: var(--bg-input); border-radius: 20px; height: 8px; }
+  .pbar { height: 8px; border-radius: 20px; }
+
+  /* ─── SLIDE 10 FINAL ─── */
+  .big-check { font-size: 100px; animation: pop .5s ease; }
+  @keyframes pop { 0%{transform:scale(0)} 80%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+  /* ─── NAVIGATION ─── */
+  .nav {
+    position: fixed; bottom: 28px; right: 32px;
+    display: flex; gap: 12px; z-index: 1000;
+  }
+  .nav-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text); font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  .slide-counter {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    color: var(--muted); font-size: 13px; z-index: 1000;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); transition: background .3s;
+    cursor: pointer;
+  }
+  .dot.active { background: var(--blue); width: 20px; border-radius: 3px; }
+
+  /* ─── MEMBER BADGE ─── */
+  .member-badge {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px;
+  }
+
+  /* ─── SECURITY METER ─── */
+  .sec-item { margin-bottom: 14px; }
+  .sec-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+
+  /* slide-wide title row */
+  .slide-header { width: 100%; margin-bottom: 28px; }
+  .slide-header h2 { margin-bottom: 6px; }
+
+  /* full-width content */
+  .full-w { width: 100%; }
+
+  /* icon grid */
+  .icon-card { text-align: center; padding: 24px 16px; }
+  .icon-card .ico { font-size: 40px; margin-bottom: 12px; }
+  .icon-card h3 { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ══════════════════════════════════════════ SLIDE 1: TITLE -->
+  <div class="slide slide-1 active">
+    <div class="s1-lock">🔐</div>
+    <h1 class="s1-title">Secure File Encryption System<br/><span class="accent">using Hybrid Cryptography</span></h1>
+    <p class="s1-sub">Information Security — Group Project</p>
+    <div class="s1-badges">
+      <span class="tag tag-blue">RSA-2048</span>
+      <span class="tag tag-amber">AES-256-CBC</span>
+      <span class="tag tag-green">HMAC-SHA256</span>
+      <span class="tag tag-purple">PyQt6 Desktop App</span>
+    </div>
+    <div class="glow-line"></div>
+    <p class="s1-names">Presented by: <strong>[Member 1 Name]</strong> &amp; <strong>[Member 2 Name]</strong></p>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 2: PROBLEM -->
+  <div class="slide slide-2">
+    <div class="slide-header">
+      <span class="tag tag-blue">INTRODUCTION</span>
+      <h2 style="margin-top:12px">The Problem: <span class="accent">Secure File Transfer</span></h2>
+    </div>
+    <div class="three-col full-w">
+      <div class="card icon-card">
+        <div class="ico">🌐</div>
+        <h3>Data in Transit</h3>
+        <p>Files sent over networks can be intercepted by attackers using packet sniffing tools</p>
+      </div>
+      <div class="card icon-card">
+        <div class="ico">💾</div>
+        <h3>Data at Rest</h3>
+        <p>Files stored on disk are vulnerable if a system is compromised or storage is stolen</p>
+      </div>
+      <div class="card icon-card">
+        <div class="ico">🔓</div>
+        <h3>Key Distribution</h3>
+        <p>Symmetric encryption alone can't securely share the secret key between parties</p>
+      </div>
+    </div>
+    <div class="card full-w" style="margin-top:24px; border-color: var(--amber);">
+      <p style="color:var(--text); text-align:center; font-size:16px; font-weight:500;">
+        ⚡ <span class="accent-a">Solution:</span> Combine symmetric speed with asymmetric security — <strong>Hybrid Cryptography</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 3: WHY HYBRID -->
+  <div class="slide slide-3">
+    <div class="slide-header">
+      <span class="tag tag-purple">THEORY</span>
+      <h2 style="margin-top:12px">Why <span class="accent-p">Hybrid</span> Cryptography?</h2>
+    </div>
+    <div class="two-col full-w">
+      <div class="card" style="border-color:var(--amber)">
+        <h3 class="accent-a" style="margin-bottom:12px">⚡ AES (Symmetric)</h3>
+        <table>
+          <tr><td>✅ Extremely fast</td></tr>
+          <tr><td>✅ Handles any file size</td></tr>
+          <tr><td>✅ Low CPU overhead</td></tr>
+          <tr><td>❌ Key distribution problem</td></tr>
+          <tr><td>❌ Both parties need same key</td></tr>
+        </table>
+      </div>
+      <div class="card" style="border-color:var(--blue)">
+        <h3 class="accent" style="margin-bottom:12px">🔑 RSA (Asymmetric)</h3>
+        <table>
+          <tr><td>✅ Solves key distribution</td></tr>
+          <tr><td>✅ Public key freely shared</td></tr>
+          <tr><td>✅ Private key never transmitted</td></tr>
+          <tr><td>❌ Slow — can't encrypt files</td></tr>
+          <tr><td>❌ Limited data size (~214 bytes)</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card full-w" style="margin-top:24px; border-color:var(--green);">
+      <div class="flow">
+        <div class="flow-box">📄 File Data</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="border-color:var(--amber); color:var(--amber)">AES-256 Encrypt</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="border-color:var(--green); color:var(--green)">🔒 Ciphertext</div>
+        <div class="flow-arrow" style="margin-left:16px">|</div>
+        <div class="flow-box">🗝 AES Key</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="border-color:var(--blue); color:var(--blue)">RSA-2048 Encrypt</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="border-color:var(--purple); color:var(--purple)">📦 .enc Bundle</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 4: ALGORITHMS -->
+  <div class="slide slide-4">
+    <div class="slide-header">
+      <span class="tag tag-amber">METHODOLOGY</span>
+      <h2 style="margin-top:12px">Cryptographic <span class="accent-a">Algorithms</span></h2>
+    </div>
+    <table class="full-w card" style="padding:0; overflow:hidden; border-radius:16px;">
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Type</th>
+          <th>Key Size</th>
+          <th>Mode/Variant</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong class="accent-a">AES</strong></td>
+          <td>Symmetric</td>
+          <td>256-bit</td>
+          <td>CBC + PKCS7</td>
+          <td>Encrypt file content (fast)</td>
+        </tr>
+        <tr>
+          <td><strong class="accent">RSA</strong></td>
+          <td>Asymmetric</td>
+          <td>2048-bit</td>
+          <td>OAEP + SHA-256</td>
+          <td>Encrypt AES session key</td>
+        </tr>
+        <tr>
+          <td><strong class="accent-g">HMAC</strong></td>
+          <td>MAC / Integrity</td>
+          <td>256-bit tag</td>
+          <td>SHA-256</td>
+          <td>Detect tampering</td>
+        </tr>
+        <tr>
+          <td><strong class="accent-p">IV</strong></td>
+          <td>Randomness</td>
+          <td>128-bit</td>
+          <td>CSPRNG</td>
+          <td>Prevent pattern leakage</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="two-col full-w" style="margin-top:20px;">
+      <div class="card">
+        <h3 class="accent" style="margin-bottom:8px">OAEP Padding</h3>
+        <p>Optimal Asymmetric Encryption Padding adds randomness to RSA, preventing deterministic outputs and chosen-ciphertext attacks</p>
+      </div>
+      <div class="card">
+        <h3 class="accent-g" style="margin-bottom:8px">Encrypt-then-MAC</h3>
+        <p>HMAC is computed over ciphertext after encryption — provably secure ordering that detects tampering before decryption begins</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 5: ARCHITECTURE -->
+  <div class="slide slide-5">
+    <div class="slide-header">
+      <span class="tag tag-green">IMPLEMENTATION</span>
+      <h2 style="margin-top:12px">System <span class="accent-g">Architecture</span></h2>
+    </div>
+    <div class="two-col full-w">
+      <div>
+        <h3 class="accent" style="margin-bottom:16px">🔒 Encryption Flow</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="card" style="padding:12px 16px; border-left:3px solid var(--blue)">
+            <strong>1.</strong> Generate random AES-256 key + 128-bit IV
+          </div>
+          <div class="card" style="padding:12px 16px; border-left:3px solid var(--amber)">
+            <strong>2.</strong> Encrypt file with AES-256-CBC → ciphertext
+          </div>
+          <div class="card" style="padding:12px 16px; border-left:3px solid var(--green)">
+            <strong>3.</strong> Compute HMAC-SHA256(IV ∥ ciphertext)
+          </div>
+          <div class="card" style="padding:12px 16px; border-left:3px solid var(--purple)">
+            <strong>4.</strong> Encrypt AES key with RSA public key (OAEP)
+          </div>
+          <div class="card" style="padding:12px 16px; border-left:3px solid var(--red)">
+            <strong>5.</strong> Bundle all into .enc file
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 class="accent-g" style="margin-bottom:16px">📦 .enc File Format</h3>
+        <div class="code-block" style="font-size:12px;">┌─────────────────────────────┐
+│  MAGIC HEADER   (8 bytes)  │
+├─────────────────────────────┤
+│  KEY LENGTH     (2 bytes)  │
+├─────────────────────────────┤
+│  RSA-ENCRYPTED AES KEY     │
+│  (256 bytes for 2048-bit)  │
+├─────────────────────────────┤
+│  AES IV         (16 bytes) │
+├─────────────────────────────┤
+│  HMAC-SHA256    (32 bytes) │
+├─────────────────────────────┤
+│  CIPHERTEXT     (variable) │
+└─────────────────────────────┘</div>
+        <div class="card" style="margin-top:16px; border-color:var(--green)">
+          <p><span class="accent-g">Project Files:</span> hybrid_crypto.py • cli.py • gui.py</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 6: IMPLEMENTATION -->
+  <div class="slide slide-6">
+    <div class="slide-header">
+      <span class="tag tag-purple">CODE</span>
+      <h2 style="margin-top:12px">Core <span class="accent-p">Implementation</span></h2>
+    </div>
+    <div class="two-col full-w">
+      <div class="code-block" style="font-size:11.5px;"><span class="cmt"># AES-256-CBC Encryption</span>
+<span class="kw">from</span> Crypto.Cipher <span class="kw">import</span> AES, PKCS1_OAEP
+<span class="kw">from</span> Crypto.PublicKey <span class="kw">import</span> RSA
+<span class="kw">from</span> Crypto.Random <span class="kw">import</span> get_random_bytes
+
+<span class="cmt"># 1. Generate session key</span>
+aes_key = <span class="fn">get_random_bytes</span>(<span class="num">32</span>)  <span class="cmt"># 256-bit</span>
+iv      = <span class="fn">get_random_bytes</span>(<span class="num">16</span>)  <span class="cmt"># 128-bit IV</span>
+
+<span class="cmt"># 2. Encrypt file data</span>
+cipher = AES.<span class="fn">new</span>(aes_key, AES.MODE_CBC, iv)
+ciphertext = cipher.<span class="fn">encrypt</span>(<span class="fn">pad</span>(data, <span class="num">16</span>))
+
+<span class="cmt"># 3. HMAC integrity tag</span>
+mac = hmac.<span class="fn">new</span>(aes_key, iv+ciphertext,
+              hashlib.sha256).<span class="fn">digest</span>()
+
+<span class="cmt"># 4. Encrypt AES key with RSA</span>
+rsa_key = RSA.<span class="fn">import_key</span>(pub_pem)
+cipher_rsa = PKCS1_OAEP.<span class="fn">new</span>(rsa_key)
+enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
+      <div>
+        <div class="card" style="border-color:var(--blue); margin-bottom:16px;">
+          <h3 class="accent" style="margin-bottom:8px">🏗️ Module Structure</h3>
+          <p style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:2; color:var(--text)">
+            app.py           ← PyQt6 desktop app ⭐<br/>
+            hybrid_crypto.py ← Core engine<br/>
+            cli.py           ← Terminal CLI<br/>
+            test_crypto.py   ← 10 tests (all pass)<br/>
+            dist/HybridCrypto.exe ← Standalone .exe
+          </p>
+        </div>
+        <div class="card" style="border-color:var(--green);">
+          <h3 class="accent-g" style="margin-bottom:8px">📦 Dependencies</h3>
+          <p style="font-size:13px; line-height:2; color:var(--text)">
+            • PyCryptodome 3.19+ (crypto primitives)<br/>
+            • PyQt6 6.6+ (desktop UI framework)<br/>
+            • PyInstaller (standalone .exe build)<br/>
+            • Python 3.8+ standard library
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 7: DEMO -->
+  <div class="slide slide-7">
+    <div class="slide-header">
+      <span class="tag tag-green">DEMO</span>
+      <h2 style="margin-top:12px">Live <span class="accent-g">Demonstration</span></h2>
+    </div>
+    <div class="three-col full-w">
+      <div class="card icon-card" style="border-color:var(--blue)">
+        <div class="ico">🔑</div>
+        <h3 class="accent">Step 1: Key Gen</h3>
+        <div class="code-block" style="font-size:11px; margin-top:12px; text-align:left;">python cli.py keygen \
+  --private keys/private.pem \
+  --public  keys/public.pem</div>
+        <p style="margin-top:10px; font-size:12px;">Generates RSA-2048 key pair with SHA-256 fingerprint</p>
+      </div>
+      <div class="card icon-card" style="border-color:var(--amber)">
+        <div class="ico">🔒</div>
+        <h3 class="accent-a">Step 2: Encrypt</h3>
+        <div class="code-block" style="font-size:11px; margin-top:12px; text-align:left;">python cli.py encrypt \
+  --input  secret.txt \
+  --output secret.enc \
+  --key    keys/public.pem</div>
+        <p style="margin-top:10px; font-size:12px;">Produces encrypted .enc bundle unreadable without private key</p>
+      </div>
+      <div class="card icon-card" style="border-color:var(--green)">
+        <div class="ico">🔓</div>
+        <h3 class="accent-g">Step 3: Decrypt</h3>
+        <div class="code-block" style="font-size:11px; margin-top:12px; text-align:left;">python cli.py decrypt \
+  --input  secret.enc \
+  --output recovered.txt \
+  --key    keys/private.pem</div>
+        <p style="margin-top:10px; font-size:12px;">HMAC verified first; plaintext restored if integrity OK</p>
+      </div>
+    </div>
+    <div class="card full-w" style="margin-top:20px; border-color:var(--red);">
+      <p style="text-align:center; color:var(--text); font-size:15px;">
+        🚨 <strong>Tamper Detection Demo:</strong> Flip bits in .enc file → <span style="color:var(--red)">INTEGRITY CHECK FAILED</span> → Decryption aborted
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 8: TEST RESULTS -->
+  <div class="slide slide-8">
+    <div class="slide-header">
+      <span class="tag tag-green">RESULTS</span>
+      <h2 style="margin-top:12px">Test <span class="accent-g">Results</span></h2>
+    </div>
+    <div class="two-col full-w">
+      <div class="card">
+        <h3 class="accent" style="margin-bottom:16px">✅ Test Suite Results</h3>
+        <table>
+          <tr><th>Test Case</th><th>Result</th></tr>
+          <tr><td>Empty file (0 bytes)</td><td style="color:var(--green)">PASS ✓</td></tr>
+          <tr><td>Small text (27 bytes)</td><td style="color:var(--green)">PASS ✓</td></tr>
+          <tr><td>Multiline text (440 bytes)</td><td style="color:var(--green)">PASS ✓</td></tr>
+          <tr><td>Binary data (4 KB)</td><td style="color:var(--green)">PASS ✓</td></tr>
+          <tr><td>Large file (512 KB)</td><td style="color:var(--green)">PASS ✓</td></tr>
+          <tr><td>Tamper detection</td><td style="color:var(--green)">PASS ✓</td></tr>
+          <tr><td>SHA-256 hash match</td><td style="color:var(--green)">PASS ✓</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3 class="accent-a" style="margin-bottom:12px">📊 Performance</h3>
+          <div class="sec-item">
+            <div class="sec-label"><span>Key Generation (2048-bit)</span><span class="accent">~0.5s</span></div>
+            <div class="pbar-wrap"><div class="pbar" style="width:20%;background:var(--blue)"></div></div>
+          </div>
+          <div class="sec-item">
+            <div class="sec-label"><span>1 MB file encryption</span><span class="accent-g">&lt;0.1s</span></div>
+            <div class="pbar-wrap"><div class="pbar" style="width:5%;background:var(--green)"></div></div>
+          </div>
+          <div class="sec-item">
+            <div class="sec-label"><span>1 MB file decryption</span><span class="accent-g">&lt;0.1s</span></div>
+            <div class="pbar-wrap"><div class="pbar" style="width:5%;background:var(--green)"></div></div>
+          </div>
+          <div class="sec-item">
+            <div class="sec-label"><span>100 MB file encryption</span><span class="accent-a">~3.5s</span></div>
+            <div class="pbar-wrap"><div class="pbar" style="width:60%;background:var(--amber)"></div></div>
+          </div>
+        </div>
+        <div class="card" style="border-color:var(--green);">
+          <p style="color:var(--text); font-size:13px; line-height:1.8;">
+            ✓ SHA-256 hashes match before/after in <strong>all</strong> test cases<br/>
+            ✓ All <strong>10 unit tests</strong> pass (0 failures)<br/>
+            ✓ Supports text, binary, PDF, image files
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 9: SECURITY ANALYSIS -->
+  <div class="slide slide-9">
+    <div class="slide-header">
+      <span class="tag tag-blue">SECURITY</span>
+      <h2 style="margin-top:12px">Security <span class="accent">Analysis</span></h2>
+    </div>
+    <div class="two-col full-w">
+      <div class="card">
+        <h3 class="accent-g" style="margin-bottom:14px">✅ Strengths</h3>
+        <div class="sec-item">
+          <div class="sec-label"><span>Brute-force resistance (AES-256)</span><span class="accent-g">MAX</span></div>
+          <div class="pbar-wrap"><div class="pbar" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div class="sec-item">
+          <div class="sec-label"><span>Key exchange security (RSA-2048)</span><span class="accent-g">HIGH</span></div>
+          <div class="pbar-wrap"><div class="pbar" style="width:92%;background:var(--green)"></div></div>
+        </div>
+        <div class="sec-item">
+          <div class="sec-label"><span>Tamper detection (HMAC-SHA256)</span><span class="accent-g">MAX</span></div>
+          <div class="pbar-wrap"><div class="pbar" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div class="sec-item">
+          <div class="sec-label"><span>Padding oracle resistance (OAEP)</span><span class="accent-g">HIGH</span></div>
+          <div class="pbar-wrap"><div class="pbar" style="width:88%;background:var(--green)"></div></div>
+        </div>
+        <div class="sec-item">
+          <div class="sec-label"><span>Pattern concealment (random IV)</span><span class="accent-g">MAX</span></div>
+          <div class="pbar-wrap"><div class="pbar" style="width:100%;background:var(--green)"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px; border-color:var(--amber)">
+          <h3 class="accent-a" style="margin-bottom:12px">⚠️ Known Limitations</h3>
+          <p style="font-size:13px; line-height:1.8; color:var(--text)">
+            • Private key stored unencrypted on disk<br/>
+            • No perfect forward secrecy (RSA reuse)<br/>
+            • No key revocation mechanism<br/>
+            • Single-recipient encryption only
+          </p>
+        </div>
+        <div class="card" style="border-color:var(--blue)">
+          <h3 class="accent" style="margin-bottom:12px">🔮 Future Improvements</h3>
+          <p style="font-size:13px; line-height:1.8; color:var(--text)">
+            • Passphrase-protected private key (AES-256-GCM wrapping)<br/>
+            • Digital signatures (RSA + SHA-256)<br/>
+            • Elliptic Curve Cryptography (ECDH)<br/>
+            • Multi-recipient support
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ SLIDE 10: CONCLUSION -->
+  <div class="slide slide-10">
+    <div class="big-check">✅</div>
+    <h1 style="text-align:center; margin-bottom:12px">Project <span class="accent">Completed</span></h1>
+    <p style="text-align:center; max-width:680px; font-size:16px; color:var(--text); line-height:1.8; margin-bottom:28px;">
+      We successfully implemented a <strong>Secure File Encryption System</strong> combining RSA-2048, AES-256-CBC, and HMAC-SHA256. The system provides confidentiality, integrity, and authenticity for any file type.
+    </p>
+    <div class="three-col" style="max-width:700px;">
+      <div class="card" style="text-align:center; border-color:var(--blue)">
+        <div style="font-size:28px; margin-bottom:8px">🔐</div>
+        <strong class="accent">Confidentiality</strong><br/>
+        <small style="color:var(--muted)">AES-256 encryption</small>
+      </div>
+      <div class="card" style="text-align:center; border-color:var(--green)">
+        <div style="font-size:28px; margin-bottom:8px">🛡️</div>
+        <strong class="accent-g">Integrity</strong><br/>
+        <small style="color:var(--muted)">HMAC-SHA256 verification</small>
+      </div>
+      <div class="card" style="text-align:center; border-color:var(--purple)">
+        <div style="font-size:28px; margin-bottom:8px">🔑</div>
+        <strong class="accent-p">Key Security</strong><br/>
+        <small style="color:var(--muted)">RSA-2048 OAEP</small>
+      </div>
+    </div>
+    <div class="glow-line" style="margin-top:32px;"></div>
+    <p style="color:var(--muted); font-size:14px; margin-top:8px; text-align:center">
+      Information Security — Group Project &nbsp;|&nbsp; 2026
+    </p>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav">
+  <button class="nav-btn" id="prev" onclick="goTo(curr-1)">‹</button>
+  <button class="nav-btn" id="next" onclick="goTo(curr+1)">›</button>
+</div>
+
+<div class="slide-counter" id="dots"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total  = slides.length;
+  let curr = 0;
+
+  // Build dots
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick   = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[curr].classList.remove('active');
+    slides[curr].classList.add('out');
+    setTimeout(() => slides[curr].classList.remove('out'), 450);
+    curr = n;
+    slides[curr].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === curr);
+    });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') goTo(curr + 1);
+    if (e.key === 'ArrowLeft')                   goTo(curr - 1);
+    if (e.key === 'Home')                         goTo(0);
+    if (e.key === 'End')                          goTo(total - 1);
+  });
+</script>
+</body>
+</html>

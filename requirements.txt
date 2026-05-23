@@ -1,0 +1,5 @@
+pycryptodome>=3.19.0
+PyQt6>=6.6.0
+colorama>=0.4.6
+tqdm>=4.66.0
+pyinstaller>=6.0.0
