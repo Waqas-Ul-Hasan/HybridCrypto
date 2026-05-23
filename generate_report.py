@@ -20,32 +20,16 @@ import os
 # ─────────────────────────────────────────────────────────────────────────────
 
 def set_cell_bg(cell, hex_color: str):
-    """Set table cell background color."""
-    tc   = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    shd  = OxmlElement('w:shd')
-    shd.set(qn('w:val'),   'clear')
-    shd.set(qn('w:color'), 'auto')
-    shd.set(qn('w:fill'),  hex_color)
-    tcPr.append(shd)
+    pass
 
 def set_cell_border(cell, **kwargs):
-    tc   = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    tcBorders = OxmlElement('w:tcBorders')
-    for side in ['top', 'left', 'bottom', 'right']:
-        tag = OxmlElement(f'w:{side}')
-        tag.set(qn('w:val'),   'single')
-        tag.set(qn('w:sz'),    '6')
-        tag.set(qn('w:space'), '0')
-        tag.set(qn('w:color'), '2C3E50')
-        tcBorders.append(tag)
-    tcPr.append(tcBorders)
+    pass
 
-def add_heading(doc, text: str, level: int, color: str = '1A3A5C'):
+def add_heading(doc, text: str, level: int, color: str = None):
     p = doc.add_heading(text, level=level)
     run = p.runs[0] if p.runs else p.add_run(text)
-    run.font.color.rgb = RGBColor.from_string(color)
+    run.font.color.rgb = RGBColor(0, 0, 0)
+    run.font.name = 'Times New Roman'
     return p
 
 def add_para(doc, text: str, bold=False, italic=False, size=11, color=None, space_before=0, space_after=6, align=None):
@@ -58,11 +42,11 @@ def add_para(doc, text: str, bold=False, italic=False, size=11, color=None, spac
     run.bold   = bold
     run.italic = italic
     run.font.size = Pt(size)
-    if color:
-        run.font.color.rgb = RGBColor.from_string(color)
+    run.font.name = 'Times New Roman'
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
-def add_table(doc, headers, rows, header_color='1A3A5C', alt_color='EBF5FB'):
+def add_table(doc, headers, rows, header_color=None, alt_color=None):
     table = doc.add_table(rows=1+len(rows), cols=len(headers))
     table.style = 'Table Grid'
 
@@ -70,22 +54,22 @@ def add_table(doc, headers, rows, header_color='1A3A5C', alt_color='EBF5FB'):
     hdr_row = table.rows[0]
     for i, h in enumerate(headers):
         cell = hdr_row.cells[i]
-        set_cell_bg(cell, header_color)
         run  = cell.paragraphs[0].add_run(h)
         run.bold       = True
-        run.font.color.rgb = RGBColor(255, 255, 255)
-        run.font.size      = Pt(10)
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        run.font.size      = Pt(11)
+        run.font.name = 'Times New Roman'
         cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # Data rows
     for ri, row in enumerate(rows):
         tr = table.rows[ri+1]
-        bg = alt_color if ri % 2 == 1 else 'FFFFFF'
         for ci, cell_val in enumerate(row):
             cell = tr.cells[ci]
-            set_cell_bg(cell, bg)
             run  = cell.paragraphs[0].add_run(str(cell_val))
-            run.font.size = Pt(10)
+            run.font.size = Pt(11)
+            run.font.name = 'Times New Roman'
+            run.font.color.rgb = RGBColor(0, 0, 0)
     return table
 
 def add_code_block(doc, code: str):
@@ -93,31 +77,14 @@ def add_code_block(doc, code: str):
     p.paragraph_format.left_indent  = Cm(1)
     p.paragraph_format.space_before = Pt(4)
     p.paragraph_format.space_after  = Pt(4)
-    pPr  = p._element.get_or_add_pPr()
-    shd  = OxmlElement('w:shd')
-    shd.set(qn('w:val'),  'clear')
-    shd.set(qn('w:fill'), 'F4F6F7')
-    pPr.append(shd)
     run  = p.add_run(code)
-    run.font.name = 'Consolas'
-    run.font.size = Pt(9)
-    run.font.color.rgb = RGBColor(0x0D, 0x47, 0xA1)
+    run.font.name = 'Courier New'
+    run.font.size = Pt(10)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_separator(doc):
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(4)
-    p.paragraph_format.space_after  = Pt(4)
-    pPr = p._element.get_or_add_pPr()
-    pBdr = OxmlElement('w:pBdr')
-    bottom = OxmlElement('w:bottom')
-    bottom.set(qn('w:val'),   'single')
-    bottom.set(qn('w:sz'),    '6')
-    bottom.set(qn('w:space'), '1')
-    bottom.set(qn('w:color'), '2980B9')
-    pBdr.append(bottom)
-    pPr.append(pBdr)
-    return p
+    pass
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -136,13 +103,13 @@ def build_report():
 
     # ── Styles
     normal_style = doc.styles['Normal']
-    normal_style.font.name = 'Calibri'
+    normal_style.font.name = 'Times New Roman'
     normal_style.font.size = Pt(11)
 
     # ── Header
     for i in range(1, 4):
         s = doc.styles[f'Heading {i}']
-        s.font.name = 'Calibri'
+        s.font.name = 'Times New Roman'
 
     # ══════════════════════════════════════════════════════════
     # TITLE PAGE
@@ -153,21 +120,21 @@ def build_report():
     tp = doc.add_paragraph()
     tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = tp.add_run('INFORMATION SECURITY')
-    run.bold = True; run.font.size = Pt(14); run.font.color.rgb = RGBColor(0x2C, 0x3E, 0x50)
+    run.bold = True; run.font.size = Pt(14); run.font.name = 'Times New Roman'; run.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.add_paragraph()
 
     tp2 = doc.add_paragraph()
     tp2.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run2 = tp2.add_run('Secure File Encryption System\nusing Hybrid Cryptography')
-    run2.bold = True; run2.font.size = Pt(22); run2.font.color.rgb = RGBColor(0x1A, 0x3A, 0x5C)
+    run2.bold = True; run2.font.size = Pt(22); run2.font.name = 'Times New Roman'; run2.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.add_paragraph()
 
     tp3 = doc.add_paragraph()
     tp3.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run3 = tp3.add_run('Research Report')
-    run3.font.size = Pt(14); run3.font.color.rgb = RGBColor(0x5D, 0x6D, 0x7E)
+    run3.font.size = Pt(14); run3.font.name = 'Times New Roman'; run3.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.add_paragraph(); doc.add_paragraph(); doc.add_paragraph()
 
@@ -182,11 +149,10 @@ def build_report():
     ]
     for i, (k, v) in enumerate(infos):
         row = info_table.rows[i]
-        set_cell_bg(row.cells[0], '1A3A5C')
         kr  = row.cells[0].paragraphs[0].add_run(k)
-        kr.bold = True; kr.font.color.rgb = RGBColor(255,255,255); kr.font.size = Pt(11)
+        kr.bold = True; kr.font.color.rgb = RGBColor(0,0,0); kr.font.size = Pt(11); kr.font.name = 'Times New Roman'
         vr  = row.cells[1].paragraphs[0].add_run(v)
-        vr.font.size = Pt(11)
+        vr.font.size = Pt(11); vr.font.name = 'Times New Roman'; vr.font.color.rgb = RGBColor(0,0,0)
 
     doc.add_page_break()
 
@@ -351,7 +317,7 @@ def build_report():
     for i, (title, desc) in enumerate(steps, 1):
         p = doc.add_paragraph()
         run = p.add_run(f'  {title}')
-        run.bold = True; run.font.size = Pt(11); run.font.color.rgb = RGBColor(0x1A, 0x3A, 0x5C)
+        run.bold = True; run.font.size = Pt(11); run.font.color.rgb = RGBColor(0, 0, 0); run.font.name = 'Times New Roman'
         p.paragraph_format.space_after = Pt(2)
         add_para(doc, '  ' + desc, size=10)
 
@@ -585,7 +551,7 @@ def build_report():
     # Save
     # ══════════════════════════════════════════════════════════
     os.makedirs('report', exist_ok=True)
-    path = 'report/IS_Report.docx'
+    path = 'report/IS_Report_Plain.docx'
     doc.save(path)
     print(f'\n  [OK] Report saved -> {path}\n')
     return path
