@@ -348,18 +348,24 @@ class DashboardPage(BasePage):
         fl = QVBoxLayout(flow)
         fl.setContentsMargins(24, 20, 24, 20)
         fl.setSpacing(0)
-        flow_txt = QLabel(
-            "File  →  AES-256-CBC encrypt  →  Ciphertext\n"
-            "                  ↓\n"
-            "AES Key  →  RSA-2048 wrap (public key)  →  Encrypted Key\n"
-            "                  ↓\n"
-            "HMAC-SHA256 ( IV ∥ Ciphertext )  →  Integrity Tag\n"
-            "                  ↓\n"
-            "Bundle  →  [ Header | Enc.Key | IV | HMAC | Ciphertext ]  →  .enc"
-        )
-        flow_txt.setFont(QFont(FONT_MONO, 9))
-        flow_txt.setStyleSheet(f"color:{TEXT_DIM}; background:transparent;")
-        fl.addWidget(flow_txt)
+        steps = [
+            ("1.", "Generate random AES-256 key & 128-bit IV", ACCENT),
+            ("2.", "Encrypt file with AES-256-CBC  →  Ciphertext", AMBER),
+            ("3.", "Compute HMAC-SHA256 over IV + Ciphertext", GREEN),
+            ("4.", "Encrypt AES session key with RSA public key", PURPLE),
+            ("5.", "Bundle components into secure .enc file", RED)
+        ]
+        for num, txt, col in steps:
+            w = QWidget()
+            w.setStyleSheet(f"background:{BG_SURFACE}; border-left:3px solid {col}; border-radius:6px;")
+            wl = QHBoxLayout(w)
+            wl.setContentsMargins(16, 12, 16, 12)
+            wl.addWidget(label(num, size=11, bold=True, color=col))
+            wl.addSpacing(6)
+            wl.addWidget(label(txt, size=10, color=TEXT))
+            wl.addStretch()
+            fl.addWidget(w)
+            if num != "5.": fl.addSpacing(8)
         layout.addWidget(flow)
 
         layout.addStretch()
