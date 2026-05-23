@@ -316,7 +316,56 @@ class DashboardPage(BasePage):
         tags.addStretch()
         hl.addLayout(tags)
         layout.addWidget(hero)
-        layout.addSpacing(32)
+        layout.addSpacing(28)
+
+        # Dynamic Stats Row
+        self._section_label("system status", layout)
+        stats = QHBoxLayout()
+        stats.setSpacing(12)
+        
+        self.lbl_keys = label("", size=14, bold=True)
+        self.lbl_enc = label("", size=14, bold=True)
+        lbl_backend = label(hc.CRYPTO_BACKEND, size=14, bold=True)
+        lbl_backend.setStyleSheet(f"color:{AMBER}; background:transparent;")
+        lbl_sec = label("AES-256 + RSA", size=14, bold=True)
+        lbl_sec.setStyleSheet(f"color:{PURPLE}; background:transparent;")
+        
+        for title, lbl in [
+            ("Key Pair Status", self.lbl_keys),
+            ("Encrypted Files", self.lbl_enc),
+            ("Crypto Engine", lbl_backend),
+            ("Security Level", lbl_sec)
+        ]:
+            c = QWidget()
+            c.setStyleSheet(f"background:{BG_RAISED}; border-radius:12px;")
+            cl = QVBoxLayout(c)
+            cl.setContentsMargins(18, 16, 18, 16)
+            cl.setSpacing(6)
+            cl.addWidget(label(title, size=9, color=TEXT_SUB))
+            cl.addWidget(lbl)
+            stats.addWidget(c)
+            
+        layout.addLayout(stats)
+        layout.addSpacing(28)
+        self._refresh_stats()
+
+    def showEvent(self, event):
+        self._refresh_stats()
+        super().showEvent(event)
+        
+    def _refresh_stats(self):
+        # Update dynamic stats when dashboard is shown
+        keys_ok = Path("keys/private.pem").exists() and Path("keys/public.pem").exists()
+        if keys_ok:
+            self.lbl_keys.setText("Ready (Found)")
+            self.lbl_keys.setStyleSheet(f"color:{GREEN}; background:transparent;")
+        else:
+            self.lbl_keys.setText("Missing")
+            self.lbl_keys.setStyleSheet(f"color:{RED}; background:transparent;")
+            
+        enc_count = len(list(Path("samples").glob("*.enc"))) if Path("samples").exists() else 0
+        self.lbl_enc.setText(f"{enc_count} files in /samples")
+        self.lbl_enc.setStyleSheet(f"color:{ACCENT}; background:transparent;")
 
         # 3 algorithm cards — NO borders, background only
         self._section_label("how it works", layout)
