@@ -548,10 +548,7 @@ def build_report():
         p.paragraph_format.left_indent = Cm(0.5)
 
     # ══════════════════════════════════════════════════════════
-    # Save
-    # ══════════════════════════════════════════════════════════
-    os.makedirs('report', exist_ok=True)
-    path = 'report/IS_Report_Plain.docx'
+    path = 'IS_Report_Plain.docx'
     doc.save(path)
     print(f'\n  [OK] Report saved -> {path}\n')
     return path
