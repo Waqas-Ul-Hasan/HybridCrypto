@@ -349,24 +349,6 @@ class DashboardPage(BasePage):
         layout.addSpacing(28)
         self._refresh_stats()
 
-    def showEvent(self, event):
-        self._refresh_stats()
-        super().showEvent(event)
-        
-    def _refresh_stats(self):
-        # Update dynamic stats when dashboard is shown
-        keys_ok = Path("keys/private.pem").exists() and Path("keys/public.pem").exists()
-        if keys_ok:
-            self.lbl_keys.setText("Ready (Found)")
-            self.lbl_keys.setStyleSheet(f"color:{GREEN}; background:transparent;")
-        else:
-            self.lbl_keys.setText("Missing")
-            self.lbl_keys.setStyleSheet(f"color:{RED}; background:transparent;")
-            
-        enc_count = len(list(Path("samples").glob("*.enc"))) if Path("samples").exists() else 0
-        self.lbl_enc.setText(f"{enc_count} files in /samples")
-        self.lbl_enc.setStyleSheet(f"color:{ACCENT}; background:transparent;")
-
         # 3 algorithm cards — NO borders, background only
         self._section_label("how it works", layout)
         grid = QHBoxLayout()
@@ -418,6 +400,24 @@ class DashboardPage(BasePage):
         layout.addWidget(flow)
 
         layout.addStretch()
+
+    def showEvent(self, event):
+        self._refresh_stats()
+        super().showEvent(event)
+        
+    def _refresh_stats(self):
+        # Update dynamic stats when dashboard is shown
+        keys_ok = Path("keys/private.pem").exists() and Path("keys/public.pem").exists()
+        if keys_ok:
+            self.lbl_keys.setText("Ready (Found)")
+            self.lbl_keys.setStyleSheet(f"color:{GREEN}; background:transparent;")
+        else:
+            self.lbl_keys.setText("Missing")
+            self.lbl_keys.setStyleSheet(f"color:{RED}; background:transparent;")
+            
+        enc_count = len(list(Path("samples").glob("*.enc"))) if Path("samples").exists() else 0
+        self.lbl_enc.setText(f"{enc_count} files in /samples")
+        self.lbl_enc.setStyleSheet(f"color:{ACCENT}; background:transparent;")
 
 
 class KeygenPage(BasePage):
