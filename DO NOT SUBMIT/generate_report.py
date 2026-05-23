@@ -143,7 +143,7 @@ def build_report():
     infos = [
         ('Course',      'Information Security'),
         ('Project',     'Secure File Encryption System using Hybrid Cryptography'),
-        ('Members',     '[Member 1 Name]  |  [Member 2 Name]'),
+        ('Members',     'Waqas Ul Hasan (FA23-BCS-167)  |  Qurat Ul ain (FA23-BCS-195)'),
         ('Date',        datetime.date.today().strftime('%B %d, %Y')),
         ('Instructor',  '[Instructor Name]'),
     ]

@@ -239,4 +239,7 @@ A: PyCryptodome — a well-maintained, actively developed cryptographic library 
 
 ---
 
-*Prepared for Information Security Course — Group Project*
+*Prepared for Information Security Course — Group Project*  
+**Team Members:**  
+1. Waqas Ul Hasan (FA23-BCS-167)  
+2. Qurat Ul ain (FA23-BCS-195)

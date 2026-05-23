@@ -4,14 +4,7 @@
 
 > **Total Duration**: ~8–10 minutes  
 > **Format**: Screen-recorded live demonstration  
-> **Member 1**: Theory, Introduction, Methodology  
-> **Member 2**: Live Demo, Results, Security Analysis, Conclusion  
-
----
-
----
-
-# 🧑 MEMBER 1 — [Your Name]
+# 🧑 MEMBER 1 — Waqas Ul Hasan
 ## Part 1: Introduction & Theory (4 minutes)
 
 ---
@@ -20,7 +13,7 @@
 
 > *[Screen shows title slide with project name and group names]*
 
-**"Hello everyone. My name is [Your Name], and together with my teammate [Teammate Name], we present our Information Security project — a Secure File Encryption System using Hybrid Cryptography."**
+**"Hello everyone. My name is Waqas Ul Hasan, and together with my teammate Qurat Ul ain, we present our Information Security project — a Secure File Encryption System using Hybrid Cryptography."**
 
 ---
 
@@ -85,13 +78,13 @@
 
 **"This is called the Encrypt-then-MAC paradigm — the provably secure order of operations."**
 
-**"I'll now hand over to [Teammate Name] who will demonstrate the system live."**
+**"I'll now hand over to Qurat Ul ain who will demonstrate the system live."**
 
 ---
 
 ---
 
-# 🧑 MEMBER 2 — [Teammate Name]
+# 🧑 MEMBER 2 — Qurat Ul ain
 ## Part 2: Live Demo, Results & Security Analysis (4–5 minutes)
 
 ---
@@ -100,7 +93,7 @@
 
 > *[Transition to screen share showing project folder]*
 
-**"Thank you [Member 1]. I'm [Teammate Name]. I'll now demonstrate our system live. We have built a full desktop application with a clean, modern interface — as well as a command-line interface. Let me start with the CLI to show exactly what's happening, then launch the app."**
+**"Thank you Waqas. I'm Qurat Ul ain. I'll now demonstrate our system live. We have built a full desktop application with a clean, modern interface — as well as a command-line interface. Let me start with the CLI to show exactly what's happening, then launch the app."**
 
 ---
 
