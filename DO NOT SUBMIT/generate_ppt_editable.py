@@ -8,7 +8,6 @@ from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 
 def parse_rgb(color_str):
-    # e.g., "rgb(255, 255, 255)" or "rgba(255, 255, 255, 0.5)"
     match = re.search(r'rgba?\((\d+),\s*(\d+),\s*(\d+)', color_str)
     if match:
         return RGBColor(int(match.group(1)), int(match.group(2)), int(match.group(3)))
@@ -16,46 +15,93 @@ def parse_rgb(color_str):
 
 async def generate_ppt_editable():
     html_path = "file:///C:/FA23-BCS-A/IS/IS-Terminal/slides.html"
-    out_pptx = "slides_editable.pptx"
+    out_pptx = "slides_fully_editable.pptx"
     
-    print("Launching headless browser to extract editable slides...")
+    print("Launching headless browser for Multi-Layer PPT Extraction...")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        # Using 1280x720 for perfect scaling mapping
         viewport_w = 1280
         viewport_h = 720
         page = await browser.new_page(viewport={'width': viewport_w, 'height': viewport_h})
         await page.goto(html_path)
         
-        # Hide the bottom navigation buttons and dots
+        # Hide navigation UI
         await page.evaluate("""
             document.querySelector('.nav').style.display = 'none';
             document.querySelector('.slide-counter').style.display = 'none';
         """)
         
         total = await page.evaluate("total")
-        
         prs = Presentation()
-        # Set presentation size to match viewport ratio and mapping
-        # 1280x720 is 16:9. Let's make the PPT 13.333 x 7.5 inches (standard 16:9 PPT size)
         prs.slide_width = Inches(13.333333333)
         prs.slide_height = Inches(7.5)
         
-        # Scale factor from browser pixels to PPT Inches
         scale_x = prs.slide_width / viewport_w
         scale_y = prs.slide_height / viewport_h
         
-        blank_slide_layout = prs.slide_layouts[6] # Blank layout
+        blank_slide_layout = prs.slide_layouts[6]
         
         for i in range(total):
             await page.evaluate(f"goTo({i})")
-            await page.wait_for_timeout(600) # wait for animations
+            await page.wait_for_timeout(600)
             
-            # Extract text data AND hide the text for the background screenshot
-            js_script = """
+            print(f"  -> Processing Slide {i+1}/{total} layers...")
+            
+            # 1. Tag graphical elements
+            graphical_js = """
             () => {
-                const elements = [];
-                const selectors = 'h1, h2, h3, p, li, th, td, .tag, .s1-lock, .big-check, .flow-box, .sec-label > span, .code-block';
+                let elements = [];
+                document.querySelectorAll('.card, .tag, .code-block, .flow-box, .glow-line, .pbar-wrap, table, .ico').forEach((el, idx) => {
+                    const slide = el.closest('.slide');
+                    if (!slide || !slide.classList.contains('active')) return;
+                    
+                    const rect = el.getBoundingClientRect();
+                    if (rect.width === 0 || rect.height === 0) return;
+                    
+                    let elId = 'export-gfx-' + idx;
+                    el.setAttribute('data-export-gfx', elId);
+                    elements.push({
+                        id: elId,
+                        x: rect.x,
+                        y: rect.y,
+                        w: rect.width,
+                        h: rect.height
+                    });
+                });
+                return elements;
+            }
+            """
+            gfx_data = await page.evaluate(graphical_js)
+            
+            # 2. Hide ALL graphics AND text to take pure background screenshot
+            await page.evaluate("""
+            () => {
+                document.querySelectorAll('[data-export-gfx]').forEach(el => el.style.setProperty('visibility', 'hidden', 'important'));
+                document.querySelectorAll('h1, h2, h3, p, li, th, td, .s1-lock, .big-check, .flow-arrow').forEach(el => {
+                    const slide = el.closest('.slide');
+                    if (!slide || !slide.classList.contains('active')) return;
+                    el.style.setProperty('visibility', 'hidden', 'important');
+                });
+            }
+            """)
+            
+            bg_path = f"bg_{i}.png"
+            await page.screenshot(path=bg_path)
+            
+            # 3. Restore visibility, set page to transparent, hide text
+            text_js = """
+            () => {
+                // Restore visibility
+                document.querySelectorAll('*').forEach(el => el.style.removeProperty('visibility'));
+                
+                // Set page backgrounds to transparent
+                document.body.style.setProperty('background', 'transparent', 'important');
+                document.documentElement.style.setProperty('background', 'transparent', 'important');
+                document.querySelectorAll('.slide').forEach(s => s.style.setProperty('background', 'transparent', 'important'));
+                
+                // Collect text AND hide it
+                const text_elements = [];
+                const selectors = 'h1, h2, h3, p, li, th, td, .tag, .s1-lock, .big-check, .flow-box, .sec-label > span, .code-block, .flow-arrow, .ico';
                 
                 document.querySelectorAll(selectors).forEach(el => {
                     const slide = el.closest('.slide');
@@ -65,71 +111,120 @@ async def generate_ppt_editable():
                     if (rect.width === 0 || rect.height === 0) return;
                     
                     const style = window.getComputedStyle(el);
-                    
-                    // We extract innerText which ignores hidden elements and formats nicely
-                    let text = el.innerText.trim();
+                    // Extract node text safely
+                    let text = Array.from(el.childNodes)
+                        .filter(node => node.nodeType === Node.TEXT_NODE)
+                        .map(node => node.textContent)
+                        .join('').trim();
+                        
+                    // fallback to innerText if no direct text nodes (e.g. nested spans)
+                    if (!text) text = el.innerText.trim();
                     if (!text) return;
                     
-                    elements.push({
+                    text_elements.push({
                         text: text,
                         x: rect.x,
                         y: rect.y,
                         w: rect.width,
                         h: rect.height,
-                        fontSize: style.fontSize, // "24px"
-                        color: style.color,       // "rgb(...)"
+                        fontSize: style.fontSize,
+                        color: style.color,
                         textAlign: style.textAlign,
                         fontWeight: style.fontWeight
                     });
                     
-                    // Hide the text but preserve layout geometry
                     el.style.setProperty('color', 'transparent', 'important');
                     el.style.setProperty('text-shadow', 'none', 'important');
-                    // Hide any spans inside (like code blocks)
                     el.querySelectorAll('*').forEach(child => {
                         child.style.setProperty('color', 'transparent', 'important');
                         child.style.setProperty('text-shadow', 'none', 'important');
                     });
                 });
-                return elements;
+                return text_elements;
             }
             """
+            text_data = await page.evaluate(text_js)
             
-            text_data = await page.evaluate(js_script)
+            # 4. Screenshot each graphical element independently
+            gfx_images = []
+            for gfx in gfx_data:
+                gfx_path = f"gfx_{i}_{gfx['id']}.png"
+                # Hide child graphics to prevent baked-in layers
+                await page.evaluate(f"""
+                () => {{
+                    const el = document.querySelector("[data-export-gfx='{gfx['id']}']");
+                    if (el) {{
+                        el.querySelectorAll('[data-export-gfx]').forEach(child => {{
+                            child.setAttribute('data-hidden-temp', 'true');
+                            child.style.setProperty('visibility', 'hidden', 'important');
+                        }});
+                    }}
+                }}
+                """)
+                
+                await page.locator(f"[data-export-gfx='{gfx['id']}']").screenshot(path=gfx_path, omit_background=True)
+                
+                # Unhide child graphics
+                await page.evaluate(f"""
+                () => {{
+                    const el = document.querySelector("[data-export-gfx='{gfx['id']}']");
+                    if (el) {{
+                        el.querySelectorAll('[data-hidden-temp="true"]').forEach(child => {{
+                            child.removeAttribute('data-hidden-temp');
+                            child.style.removeProperty('visibility');
+                        }});
+                    }}
+                }}
+                """)
+                
+                gfx['path'] = gfx_path
+                gfx_images.append(gfx)
             
-            # Now take a screenshot of the "empty" background
-            img_path = f"temp_slide_{i}.png"
-            await page.screenshot(path=img_path)
-            
-            # Create the PPT slide
-            slide = prs.slides.add_slide(blank_slide_layout)
-            slide.shapes.add_picture(img_path, 0, 0, width=prs.slide_width, height=prs.slide_height)
-            os.remove(img_path)
-            
-            # Restore the text colors in the browser so next slide transitions look okay
+            # 5. Revert styles for next slide
             await page.evaluate("""
-                () => {
-                    document.querySelectorAll('*').forEach(el => {
-                        el.style.removeProperty('color');
-                        el.style.removeProperty('text-shadow');
-                    });
-                }
+            () => {
+                document.querySelectorAll('*').forEach(el => {
+                    el.style.removeProperty('color');
+                    el.style.removeProperty('text-shadow');
+                });
+                document.body.style.removeProperty('background');
+                document.documentElement.style.removeProperty('background');
+                document.querySelectorAll('.slide').forEach(s => s.style.removeProperty('background'));
+            }
             """)
             
-            # Add editable text boxes
+            # 6. Construct PPT Slide
+            slide = prs.slides.add_slide(blank_slide_layout)
+            
+            # Layer 1: Background
+            slide.shapes.add_picture(bg_path, 0, 0, width=prs.slide_width, height=prs.slide_height)
+            os.remove(bg_path)
+            
+            # Layer 2: Independent Graphics
+            for gfx in gfx_images:
+                try:
+                    slide.shapes.add_picture(
+                        gfx['path'], 
+                        Inches(gfx['x'] / viewport_w * 13.333333333), 
+                        Inches(gfx['y'] / viewport_h * 7.5),
+                        width=Inches(gfx['w'] / viewport_w * 13.333333333),
+                        height=Inches(gfx['h'] / viewport_h * 7.5)
+                    )
+                except Exception as e:
+                    print(f"Warning: Could not add graphic {gfx['path']}: {e}")
+                if os.path.exists(gfx['path']):
+                    os.remove(gfx['path'])
+                    
+            # Layer 3: Text
             for item in text_data:
                 x = int(item['x'] * scale_x)
                 y = int(item['y'] * scale_y)
                 w = int(item['w'] * scale_x)
-                # Expand height slightly to prevent text clipping in PPT
                 h = int((item['h'] + 10) * scale_y)
                 
-                # Create text box
                 txBox = slide.shapes.add_textbox(x, y, w, h)
                 tf = txBox.text_frame
                 tf.word_wrap = True
-                
-                # Remove default margins
                 tf.margin_left = 0
                 tf.margin_top = 0
                 tf.margin_right = 0
@@ -137,20 +232,13 @@ async def generate_ppt_editable():
                 
                 p = tf.paragraphs[0]
                 p.text = item['text']
-                
-                # Font size
                 font_size_px = float(item['fontSize'].replace('px', ''))
-                # 1px = 0.75pt, but in PPT sometimes it needs slight tweaking
                 p.font.size = Pt(font_size_px * 0.75)
-                
-                # Color
                 p.font.color.rgb = parse_rgb(item['color'])
                 
-                # Bold
                 if item['fontWeight'] in ['bold', '600', '700', '800', '900']:
                     p.font.bold = True
                     
-                # Alignment
                 align = item['textAlign']
                 if align == 'center':
                     p.alignment = PP_ALIGN.CENTER
@@ -159,12 +247,10 @@ async def generate_ppt_editable():
                 else:
                     p.alignment = PP_ALIGN.LEFT
                     
-            print(f"  -> Processed editable slide {i+1}/{total}")
-            
         await browser.close()
         
     prs.save(out_pptx)
-    print(f"\n[OK] Editable hybrid presentation saved -> {out_pptx}")
+    print(f"\n[OK] Fully Modular Editable PPT saved -> {out_pptx}")
 
 if __name__ == "__main__":
     asyncio.run(generate_ppt_editable())
