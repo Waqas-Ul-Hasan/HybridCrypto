@@ -7,7 +7,7 @@ import os
 async def generate_ppt_visual():
     # Use absolute path to ensure Playwright loads it correctly
     html_path = "file:///C:/FA23-BCS-A/IS/IS-Terminal/slides.html"
-    out_pptx = "slides_v2.pptx"
+    out_pptx = "slides_v3.pptx"
     
     print("Launching headless browser to capture slides...")
     async with async_playwright() as p:
