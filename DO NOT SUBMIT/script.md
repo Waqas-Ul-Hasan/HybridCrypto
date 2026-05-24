@@ -203,9 +203,10 @@ python cli.py decrypt --input ../samples/secret.enc --output ../samples/tampered
 
 ---
 
-### 🎙️ DEMO 6 — Desktop App Demonstration (7:10–7:40)
+### 🎙️ SLIDE 8 — Desktop App Demonstration (7:10–7:40)
 
-> *[Launch the PyQt6 desktop app]*
+> *[Slide: Desktop Application]*
+> *[Switch screen to show the PyQt6 desktop app]*
 
 **"We also packaged this into a full desktop application — no terminal needed."**
 
@@ -231,7 +232,7 @@ dist\HybridCrypto.exe
 
 ---
 
-### 🎙️ SLIDE 7 — Test Results (7:40–8:10)
+### 🎙️ SLIDE 9 — Test Results (7:40–8:10)
 
 > *[Run tests or show test output screenshot]*
 
@@ -249,7 +250,7 @@ python test_crypto.py
 
 ---
 
-### 🎙️ SLIDE 8 — Security Analysis (8:10–8:45)
+### 🎙️ SLIDE 10 — Security Analysis (8:10–8:45)
 
 > *[Slide: Security analysis table]*
 
@@ -265,7 +266,7 @@ python test_crypto.py
 
 ---
 
-### 🎙️ SLIDE 9 — Conclusion (8:45–9:15)
+### 🎙️ SLIDE 11 — Conclusion (8:45–9:15)
 
 **"In conclusion, our Secure File Encryption System successfully demonstrates hybrid cryptography in a practical, usable tool."**
 
