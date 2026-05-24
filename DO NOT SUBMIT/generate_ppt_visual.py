@@ -7,13 +7,13 @@ import os
 async def generate_ppt_visual():
     # Use absolute path to ensure Playwright loads it correctly
     html_path = "file:///C:/FA23-BCS-A/IS/IS-Terminal/slides.html"
-    out_pptx = "slides.pptx"
+    out_pptx = "slides_v2.pptx"
     
     print("Launching headless browser to capture slides...")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        # 16:9 widescreen format
-        page = await browser.new_page(viewport={'width': 1920, 'height': 1080})
+        # 16:9 format, but smaller resolution so the CSS text scaling appears larger
+        page = await browser.new_page(viewport={'width': 1280, 'height': 720})
         await page.goto(html_path)
         
         # Hide the bottom navigation buttons and dots so they don't appear in the PPT
