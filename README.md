@@ -1,245 +1,95 @@
-# 🔐 Secure File Encryption System using Hybrid Cryptography
+# Secure File Encryption System 🔐
 
-> **Course**: Information Security | **Group Project** | 2 Members  
-> **Tools**: Python 3.x, PyCryptodome, PyQt6, PyInstaller  
-> **Algorithms**: RSA-2048 + AES-256-CBC + HMAC-SHA256
+A comprehensive file encryption system implementing **Hybrid Cryptography** to ensure data confidentiality, integrity, and secure key exchange. The project combines the speed of symmetric encryption with the security of asymmetric encryption, making it capable of securely transmitting files of any size over insecure networks.
 
----
+## Features
 
-## 📌 What Is This Project?
+- **Confidentiality (AES-256-CBC)**: Ultra-fast symmetric encryption for the core file data.
+- **Secure Key Exchange (RSA-2048 OAEP)**: Asymmetric encryption used exclusively to securely wrap and transmit the AES session key.
+- **Data Integrity (HMAC-SHA256)**: Implements the provably secure *Encrypt-then-MAC* paradigm to detect any tampering before decryption is attempted.
+- **Pattern Concealment**: A Cryptographically Secure Pseudo-Random Number Generator (CSPRNG) provides unique 128-bit Initialization Vectors (IVs) for every encryption.
+- **Dual Interface**: Includes a modern **PyQt6 Desktop Application** with threaded operations, as well as a powerful command-line interface (CLI).
 
-This project implements a **Hybrid Cryptography System** for secure file encryption. Hybrid cryptography combines the best of two worlds:
+## Architecture
 
-| Type | Algorithm | Purpose |
-|------|-----------|---------|
-| **Asymmetric** | RSA-2048 | Securely exchange the AES session key |
-| **Symmetric** | AES-256-CBC | Encrypt the actual file (fast & efficient) |
-| **Integrity** | HMAC-SHA256 | Detect any tampering with the encrypted file |
+The project is modularly structured, separating the core cryptography engine from the user interfaces:
 
-### 🤔 Why Hybrid? — The Core Problem It Solves
-
-- **RSA alone** is too slow for large files (can only encrypt ~214 bytes with 2048-bit key)
-- **AES alone** has a key distribution problem (how do you securely share the key?)
-- **Hybrid** = AES encrypts the data (fast), RSA encrypts only the AES key (secure)
-
----
-
-## 🏗️ Project Structure
-
-```
-IS-Terminal/
-├── app.py                 ← ⭐ PyQt6 desktop app (run this)
+```text
+├── app.py                      # PyQt6 Desktop GUI entry point
+├── dist/HybridCrypto.exe       # Standalone Windows executable
 ├── src/
-│   ├── hybrid_crypto.py   ← Core encryption engine (RSA + AES + HMAC)
-│   ├── cli.py             ← Command-line interface
-│   └── gui.py             ← Legacy Tkinter GUI
-├── dist/
-│   └── HybridCrypto.exe   ← Standalone Windows executable (no Python needed)
-├── keys/                  ← Generated RSA key files (auto-created)
-├── samples/               ← Demo files
-├── test_crypto.py         ← Automated test suite
-├── generate_report.py     ← Regenerates the Word report
-├── HybridCrypto.spec      ← PyInstaller build configuration
-├── requirements.txt       ← Python dependencies
-├── README.md              ← This file
-├── script.md              ← Presentation script
-├── report/                ← Word research report
-└── presentation/          ← HTML presentation slides
+│   ├── hybrid_crypto.py        # Core cryptography engine
+│   └── cli.py                  # Command-line interface
+├── keys/                       # Directory for RSA .pem keys
+├── samples/                    # Directory for test files
+├── test_crypto.py              # Automated test suite (10 unit tests)
+└── requirements.txt            # Python dependencies
 ```
 
----
-
-## ⚙️ How It Works — Step by Step
-
-### Encryption Process
-
-```
-INPUT FILE
-    │
-    ▼
-[1] Generate random AES-256 key (32 bytes) + IV (16 bytes)
-    │
-    ├──► [2] Encrypt FILE with AES-256-CBC → CIPHERTEXT
-    │
-    ├──► [3] Compute HMAC-SHA256(IV + CIPHERTEXT) → MAC TAG
-    │
-    └──► [4] Encrypt AES key with RSA-2048 public key → ENCRYPTED KEY
-                              │
-                              ▼
-                     [5] Bundle into .enc file:
-                     ┌─────────────────────────┐
-                     │ MAGIC HEADER (8 bytes)  │
-                     │ ENCRYPTED AES KEY       │
-                     │ AES IV (16 bytes)       │
-                     │ HMAC TAG (32 bytes)     │
-                     │ CIPHERTEXT (variable)   │
-                     └─────────────────────────┘
-```
-
-### Decryption Process
-
-```
-.enc FILE
-    │
-    ▼
-[1] Parse bundle: extract encrypted key, IV, HMAC, ciphertext
-    │
-    ▼
-[2] Decrypt AES key using RSA-2048 PRIVATE KEY
-    │
-    ▼
-[3] Verify HMAC-SHA256 → if mismatch, ABORT (tampered!)
-    │
-    ▼
-[4] Decrypt ciphertext with AES-256-CBC → PLAINTEXT
-    │
-    ▼
-OUTPUT FILE (identical to original)
-```
-
----
-
-## 🚀 Installation & Setup
+## Installation
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip
+- Python 3.8 or higher installed on your system.
 
-### Install Dependencies
+### Setup
+Clone the repository and install the required dependencies:
 
 ```bash
+git clone https://github.com/Waqas-Ul-Hasan/HybridCrypto.git
+cd HybridCrypto
 pip install -r requirements.txt
 ```
 
-### Verify Installation
+*Note: The primary dependencies are `pycryptodome` (for cryptographic primitives) and `PyQt6` (for the desktop UI).*
 
-```bash
-python -c "from Crypto.PublicKey import RSA; print('PyCryptodome OK')"
-```
+## Usage
 
----
+### 1. Desktop Application (GUI)
+The most user-friendly way to use the system is via the graphical dashboard. Heavy cryptographic tasks are offloaded to background threads to keep the interface perfectly smooth.
 
-## 💻 Usage
-
-### Option A: Desktop App (PyQt6) ⭐ Recommended
-
+Run the app via Python:
 ```bash
 python app.py
 ```
 
-The app has a clean sidebar with 5 pages:
-1. **Dashboard** — Architecture overview, algorithm cards, encryption flow
-2. **Key Generation** — Generate RSA key pairs with 1024/2048/4096-bit selector
-3. **Encrypt** — Browse input file + public key → produces `.enc` bundle
-4. **Decrypt** — Browse `.enc` file + private key → HMAC verified before decryption
-5. **Verify** — Visual pass/fail badge showing HMAC integrity status
-
-#### Or just double-click the pre-built .exe (no Python needed)
-```
+Alternatively, if you are on Windows, you can just double-click the compiled standalone executable without needing Python installed:
+```cmd
 dist\HybridCrypto.exe
 ```
-To rebuild it yourself:
-```bash
-pyinstaller HybridCrypto.spec
-# Output: dist/HybridCrypto.exe  (~43 MB, self-contained)
-```
 
----
+### 2. Command Line Interface (CLI)
+For power users and scripting, a complete CLI is provided.
 
-### Option B: Command-Line Interface (CLI)
-
+**Navigate to the source directory:**
 ```bash
 cd src
-
-# Step 1 — Generate keys
-python cli.py keygen --private ../keys/private.pem --public ../keys/public.pem
-
-# Step 2 — Encrypt
-python cli.py encrypt --input ../samples/secret.txt --output ../samples/secret.enc --key ../keys/public.pem
-
-# Step 3 — Decrypt
-python cli.py decrypt --input ../samples/secret.enc --output ../samples/recovered.txt --key ../keys/private.pem
-
-# Step 4 — Verify integrity
-python cli.py verify --input ../samples/secret.enc --key ../keys/private.pem
 ```
 
----
+**Generate an RSA Key Pair:**
+```bash
+python cli.py keygen --private ../keys/private.pem --public ../keys/public.pem
+```
 
-## 🧪 Running Tests
+**Encrypt a File:**
+```bash
+python cli.py encrypt --input ../samples/secret.txt --output ../samples/secret.enc --key ../keys/public.pem
+```
+*This produces an unreadable `.enc` bundle containing the encrypted AES key, IV, HMAC tag, and ciphertext.*
+
+**Decrypt a File:**
+```bash
+python cli.py decrypt --input ../samples/secret.enc --output ../samples/recovered.txt --key ../keys/private.pem
+```
+*The system will automatically verify the HMAC integrity tag first. If the file was tampered with, decryption will be aborted.*
+
+## Testing
+The project includes a comprehensive automated test suite that validates encryption against empty files, small text, large binary data (512KB+), and rigorously tests the tamper detection logic.
 
 ```bash
 python test_crypto.py
 ```
+*All tests verify that the pre-encryption and post-decryption SHA-256 hashes match exactly.*
 
-Tests cover:
-- ✅ RSA key generation (1024, 2048, 4096-bit)
-- ✅ Encrypt → Decrypt roundtrip (text, binary, large files)
-- ✅ Empty file handling
-- ✅ Tamper detection (HMAC failure)
-- ✅ File integrity verification
-
----
-
-## 🔒 Security Analysis — Viva Key Points
-
-| Aspect | Detail |
-|--------|--------|
-| **Confidentiality** | AES-256-CBC encrypts data; brute-force impossible (2^256 keys) |
-| **Key Security** | RSA-2048 OAEP protects AES key; RSA private key never transmitted |
-| **Integrity** | HMAC-SHA256 detects any 1-bit change; computed before decryption |
-| **Padding** | PKCS7 for AES; OAEP (SHA-256) for RSA — prevents padding oracle attacks |
-| **IV Randomness** | Fresh random IV every encryption; prevents pattern leakage |
-| **Encrypt-then-MAC** | MAC computed over ciphertext (not plaintext) — provably secure order |
-
-### Potential Weaknesses (acknowledge in viva)
-- Private key file must be kept secret (no passphrase in current impl.)
-- No perfect forward secrecy (RSA key reuse)
-- No key revocation mechanism
-- Side-channel attacks possible at OS level
-
----
-
-## 🎓 Viva Preparation FAQ
-
-**Q: Why use RSA + AES instead of just RSA?**  
-A: RSA is computationally expensive and limited in the amount of data it can encrypt directly (≈214 bytes for 2048-bit key). AES is extremely fast and can handle arbitrary file sizes. Hybrid uses each where it's strongest.
-
-**Q: What is OAEP padding in RSA?**  
-A: OAEP (Optimal Asymmetric Encryption Padding) adds randomness to RSA encryption, preventing deterministic outputs and protecting against chosen-ciphertext attacks. It uses SHA-256 as the hash function.
-
-**Q: Why Encrypt-then-MAC and not MAC-then-Encrypt?**  
-A: Encrypt-then-MAC is provably secure. If we MAC the plaintext and then encrypt, an attacker can modify ciphertext without the MAC detecting it. With EtM, any modification to the ciphertext causes HMAC verification to fail before decryption.
-
-**Q: What is CBC mode?**  
-A: Cipher Block Chaining — each plaintext block is XOR'd with the previous ciphertext block before encryption. This prevents identical plaintext blocks from producing identical ciphertext blocks, hiding data patterns.
-
-**Q: What is the role of the IV (Initialization Vector)?**  
-A: The IV makes the first block encryption non-deterministic. Without it, the same file encrypted twice with the same key produces identical ciphertext, leaking that files are the same. The IV is randomly generated each time and stored with the ciphertext (it doesn't need to be secret).
-
-**Q: How does HMAC detect tampering?**  
-A: HMAC-SHA256 produces a 32-byte authentication tag using the AES key + the ciphertext. Any single-bit change to the ciphertext produces a completely different HMAC. Without the secret key, an attacker cannot forge a valid HMAC.
-
-**Q: What is the file format of the .enc output?**  
-A: `[8-byte MAGIC] [2-byte key length] [RSA-encrypted AES key] [16-byte IV] [32-byte HMAC] [variable ciphertext]`
-
-**Q: Which Python library did you use and why?**  
-A: PyCryptodome — a well-maintained, actively developed cryptographic library for Python implementing production-grade algorithms. It's widely used in security tools.
-
----
-
-## 📚 References
-
-1. Stallings, W. (2017). *Cryptography and Network Security: Principles and Practice* (7th ed.)
-2. Bellare, M., & Rogaway, P. (1994). Optimal Asymmetric Encryption — OAEP
-3. NIST FIPS 197 — Advanced Encryption Standard (AES)
-4. NIST SP 800-38A — Recommendation for Block Cipher Modes of Operation
-5. RFC 2104 — HMAC: Keyed-Hashing for Message Authentication
-6. PyCryptodome Documentation: https://pycryptodome.readthedocs.io
-
----
-
-*Prepared for Information Security Course — Group Project*  
-**Team Members:**  
-1. Waqas Ul Hasan (FA23-BCS-167)  
-2. Qurat Ul ain (FA23-BCS-195)
+## Authors
+- **Waqas Ul Hasan** (FA23-BCS-167)
+- **Qurat Ul ain** (FA23-BCS-195)
