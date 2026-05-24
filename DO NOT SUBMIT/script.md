@@ -78,6 +78,18 @@
 
 **"This is called the Encrypt-then-MAC paradigm — the provably secure order of operations."**
 
+---
+
+### 🎙️ SLIDE 6 — Core Implementation (4:00–4:30)
+
+> *[Slide: Core Implementation code block]*
+
+**"Here you can see the core Python implementation using the PyCryptodome library."**
+
+**"We generate the 256-bit AES key and 128-bit IV using a Cryptographically Secure Pseudorandom Number Generator. The file is encrypted using AES in CBC mode with PKCS7 padding. We then generate the HMAC-SHA256 tag over the IV and ciphertext. Finally, the AES session key is encrypted using the recipient's RSA public key with OAEP padding."**
+
+**"Our codebase is cleanly structured into separate modules, separating the core cryptography engine from the CLI and the PyQt6 Desktop App interfaces."**
+
 **"I'll now hand over to Qurat Ul ain who will demonstrate the system live."**
 
 ---
@@ -89,8 +101,9 @@
 
 ---
 
-### 🎙️ SLIDE 6 — Live Demo Introduction (4:00–4:20)
+### 🎙️ SLIDE 7 — Live Demo Introduction (4:30–4:50)
 
+> *[Slide: Live Demonstration]*
 > *[Transition to screen share showing project folder]*
 
 **"Thank you Waqas. I'm Qurat Ul ain. I'll now demonstrate our system live. We have built a full desktop application with a clean, modern interface — as well as a command-line interface. Let me start with the CLI to show exactly what's happening, then launch the app."**
