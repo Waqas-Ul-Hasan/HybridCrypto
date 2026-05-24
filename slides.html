@@ -232,7 +232,7 @@
     </div>
     <div class="card full-w" style="margin-top:24px; border-color: var(--amber);">
       <p style="color:var(--text); text-align:center; font-size:16px; font-weight:500;">
-        ⚡ <span class="accent-a">Solution:</span> Combine symmetric speed with asymmetric security — <strong>Hybrid Cryptography</strong>
+         <span class="accent-a">Solution:</span> Combine symmetric speed with asymmetric security — <strong>Hybrid Cryptography</strong>
       </p>
     </div>
   </div>
@@ -245,7 +245,7 @@
     </div>
     <div class="two-col full-w">
       <div class="card" style="border-color:var(--amber)">
-        <h3 class="accent-a" style="margin-bottom:12px">⚡ AES (Symmetric)</h3>
+        <h3 class="accent-a" style="margin-bottom:12px">AES (Symmetric)</h3>
         <table>
           <tr><td>✅ Extremely fast</td></tr>
           <tr><td>✅ Handles any file size</td></tr>
@@ -255,7 +255,7 @@
         </table>
       </div>
       <div class="card" style="border-color:var(--blue)">
-        <h3 class="accent" style="margin-bottom:12px">🔑 RSA (Asymmetric)</h3>
+        <h3 class="accent" style="margin-bottom:12px">RSA (Asymmetric)</h3>
         <table>
           <tr><td>✅ Solves key distribution</td></tr>
           <tr><td>✅ Public key freely shared</td></tr>
@@ -369,7 +369,7 @@
         </div>
       </div>
       <div>
-        <h3 class="accent-g" style="margin-bottom:16px">📦 .enc File Format</h3>
+        <h3 class="accent-g" style="margin-bottom:16px">.enc File Format</h3>
         <div class="code-block" style="font-size:12px;">┌─────────────────────────────┐
 │  MAGIC HEADER   (8 bytes)  │
 ├─────────────────────────────┤
@@ -421,9 +421,9 @@ cipher_rsa = PKCS1_OAEP.<span class="fn">new</span>(rsa_key)
 enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
       <div>
         <div class="card" style="border-color:var(--blue); margin-bottom:16px;">
-          <h3 class="accent" style="margin-bottom:8px">🏗️ Module Structure</h3>
+          <h3 class="accent" style="margin-bottom:8px"> Module Structure</h3>
           <p style="font-family:'JetBrains Mono',monospace; font-size:12px; line-height:2; color:var(--text)">
-            app.py           ← PyQt6 desktop app ⭐<br/>
+            app.py           ← PyQt6 desktop app <br/>
             hybrid_crypto.py ← Core engine<br/>
             cli.py           ← Terminal CLI<br/>
             test_crypto.py   ← 10 tests (all pass)<br/>
@@ -431,7 +431,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
           </p>
         </div>
         <div class="card" style="border-color:var(--green);">
-          <h3 class="accent-g" style="margin-bottom:8px">📦 Dependencies</h3>
+          <h3 class="accent-g" style="margin-bottom:8px"> Dependencies</h3>
           <p style="font-size:13px; line-height:2; color:var(--text)">
             • PyCryptodome 3.19+ (crypto primitives)<br/>
             • PyQt6 6.6+ (desktop UI framework)<br/>
@@ -479,7 +479,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
     </div>
     <div class="card full-w" style="margin-top:20px; border-color:var(--red);">
       <p style="text-align:center; color:var(--text); font-size:15px;">
-        🚨 <strong>Tamper Detection Demo:</strong> Flip bits in .enc file → <span style="color:var(--red)">INTEGRITY CHECK FAILED</span> → Decryption aborted
+         <strong>Tamper Detection Demo:</strong> Flip bits in .enc file → <span style="color:var(--red)">INTEGRITY CHECK FAILED</span> → Decryption aborted
       </p>
     </div>
   </div>
@@ -523,7 +523,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
     </div>
     <div class="two-col full-w">
       <div class="card">
-        <h3 class="accent" style="margin-bottom:16px">✅ Test Suite Results</h3>
+        <h3 class="accent" style="margin-bottom:16px">Test Suite Results</h3>
         <table>
           <tr><th>Test Case</th><th>Result</th></tr>
           <tr><td>Empty file (0 bytes)</td><td style="color:var(--green)">PASS ✓</td></tr>
@@ -537,7 +537,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
       </div>
       <div>
         <div class="card" style="margin-bottom:16px;">
-          <h3 class="accent-a" style="margin-bottom:12px">📊 Performance</h3>
+          <h3 class="accent-a" style="margin-bottom:12px">Performance</h3>
           <div class="sec-item">
             <div class="sec-label"><span>Key Generation (2048-bit)</span><span class="accent">~0.5s</span></div>
             <div class="pbar-wrap"><div class="pbar" style="width:20%;background:var(--blue)"></div></div>
@@ -574,7 +574,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
     </div>
     <div class="two-col full-w">
       <div class="card">
-        <h3 class="accent-g" style="margin-bottom:14px">✅ Strengths</h3>
+        <h3 class="accent-g" style="margin-bottom:14px">Strengths</h3>
         <div class="sec-item">
           <div class="sec-label"><span>Brute-force resistance (AES-256)</span><span class="accent-g">MAX</span></div>
           <div class="pbar-wrap"><div class="pbar" style="width:100%;background:var(--green)"></div></div>
@@ -598,7 +598,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
       </div>
       <div>
         <div class="card" style="margin-bottom:16px; border-color:var(--amber)">
-          <h3 class="accent-a" style="margin-bottom:12px">⚠️ Known Limitations</h3>
+          <h3 class="accent-a" style="margin-bottom:12px">Known Limitations</h3>
           <p style="font-size:13px; line-height:1.8; color:var(--text)">
             • Private key stored unencrypted on disk<br/>
             • No perfect forward secrecy (RSA reuse)<br/>
@@ -607,7 +607,7 @@ enc_key = cipher_rsa.<span class="fn">encrypt</span>(aes_key)</div>
           </p>
         </div>
         <div class="card" style="border-color:var(--blue)">
-          <h3 class="accent" style="margin-bottom:12px">🔮 Future Improvements</h3>
+          <h3 class="accent" style="margin-bottom:12px">Future Improvements</h3>
           <p style="font-size:13px; line-height:1.8; color:var(--text)">
             • Passphrase-protected private key (AES-256-GCM wrapping)<br/>
             • Digital signatures (RSA + SHA-256)<br/>
